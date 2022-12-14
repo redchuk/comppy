@@ -12,7 +12,7 @@ for i in glob.glob(i_path):
     mng = plt.get_current_fig_manager()  # to get fullscreen image
     mng.window.state('zoomed')  # to get fullscreen image
     plt.imshow(im)
-    x = plt.ginput(2)
+    x = plt.ginput(3, mouse_add=1, mouse_stop=3)  # 1 for left click, 2 for right
     print(x)
     plt.close()
 
@@ -25,23 +25,13 @@ for i in glob.glob(i_path):
     center_x = min_x + int((max_x - min_x) / 2)
     center_y = min_y + int((max_y - min_y) / 2)
 
-    print('cx'+str(center_x))
-    print('cy' + str(center_y))
-
     diff_x = max_x - min_x
     diff_y = max_y - min_y
 
-    print('dx'+str(diff_x))
-    print('dy' + str(diff_y))
-
-
     crop_size = max(diff_x, diff_y)
-    print(crop_size)
-
 
     crop = im[(center_x - int(crop_size / 2)):(center_x + int(crop_size / 2)),
-              (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
-    print(crop.shape)
+           (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
 
     plt.imshow(crop)
     plt.waitforbuttonpress(timeout=5)
