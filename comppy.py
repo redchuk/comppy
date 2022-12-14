@@ -6,19 +6,27 @@ i_path = 'input/*'
 
 for i in glob.glob(i_path):
     filename = str(i).split('\\')[-1]
-    print(filename)
+    channel = filename.split('_')[-1][1]
+    print(filename + channel)
     im = io.imread(i)
-    mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
+    mng = plt.get_current_fig_manager()  # to get fullscreen image
+    mng.window.state('zoomed')           # to get fullscreen image
     plt.imshow(im)
-    x = plt.ginput(1)
+    x = plt.ginput(2)
     print(x)
     plt.close()
 
-    plt.imshow(im[int(x[0][1])-100:int(x[0][1])+100, int(x[0][0])-100:int(x[0][0])+100])
+    # having two clicks to set square we need to get min and max for x and y
+    min_x = min(int(x[0][1]), int(x[1][1]))
+    max_x = max(int(x[0][1]), int(x[1][1]))
+    min_y = min(int(x[0][0]), int(x[1][0]))
+    max_y = max(int(x[0][0]), int(x[1][0]))
+
+    plt.imshow(im[min_x:max_x, min_y:max_y])
     plt.waitforbuttonpress(timeout=5)
     plt.close()
 
+    break
 
 '''
     plt.imshow(im)
