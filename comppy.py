@@ -1,6 +1,9 @@
 import glob
 from skimage import io
+from skimage import exposure
 from matplotlib import pyplot as plt
+import numpy as np
+
 
 i_path = 'input/*'
 
@@ -37,6 +40,12 @@ for i in glob.glob(i_path):
     plt.waitforbuttonpress(timeout=5)
     plt.close()
 
+    # Contrast stretching
+    p98 = np.percentile(crop, 98)
+    contr = exposure.rescale_intensity(crop, in_range=(110, p98))
+
+    # to get pseudocolors convert to RGP via appropriate LUT then sum.
+
     break
 '''
     plt.imshow(im)
@@ -46,3 +55,7 @@ for i in glob.glob(i_path):
     plt.show()
     plt.close()
 '''
+
+# Contrast stretching
+# p2, p98 = np.percentile(img, (2, 98))
+# img_rescale = exposure.rescale_intensity(img, in_range=(p2, p98))
