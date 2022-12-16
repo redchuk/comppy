@@ -6,16 +6,27 @@ import numpy as np
 
 
 i_path = 'input/*'
+well = input('well number:')
+well_list = []
+green_list = []
 
 for i in glob.glob(i_path):
     filename = str(i).split('\\')[-1]
-    channel = filename.split('_')[-1][1]
-    print(filename + channel)
-    im = io.imread(i)
+    if well in filename.split('_')[1]:
+        well_list.append(filename)
+
+for i in well_list:
+    if '2' in i.split('_')[-1][1]:  # channel
+        #print(i)
+        green_list.append(i)
+
+for i in green_list:
+    print(i)
+    im = io.imread('input/' + i)
     mng = plt.get_current_fig_manager()  # to get fullscreen image
     mng.window.state('zoomed')  # to get fullscreen image
     plt.imshow(im)
-    x = plt.ginput(3, mouse_add=1, mouse_stop=3)  # 1 for left click, 2 for right
+    x = plt.ginput(2, mouse_add=1, mouse_stop=3)  # 1 for left click, 2 for right
     print(x)
     plt.close()
 
@@ -37,25 +48,16 @@ for i in glob.glob(i_path):
            (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
 
     plt.imshow(crop)
-    plt.waitforbuttonpress(timeout=5)
+    plt.waitforbuttonpress(timeout=1)
     plt.close()
 
     # Contrast stretching
-    p98 = np.percentile(crop, 98)
-    contr = exposure.rescale_intensity(crop, in_range=(110, p98))
+    perc = np.percentile(crop, 99.5)
+    contr = exposure.rescale_intensity(crop, in_range=(110, perc))  # or crop.max()?
+
+    plt.imshow(contr, cmap='gray')
+    plt.waitforbuttonpress(timeout=1)
+    plt.close()
 
     # to get pseudocolors convert to RGP via appropriate LUT then sum.
 
-    break
-'''
-    plt.imshow(im)
-    plt.annotate('yay!', x[0])
-    plt.waitforbuttonpress(timeout=5)
-
-    plt.show()
-    plt.close()
-'''
-
-# Contrast stretching
-# p2, p98 = np.percentile(img, (2, 98))
-# img_rescale = exposure.rescale_intensity(img, in_range=(p2, p98))
