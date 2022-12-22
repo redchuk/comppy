@@ -19,6 +19,13 @@ date = datetime.now().strftime('%Y%m%d')
 git_hash = 'git_' + subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
+# in tuple, [0] is background, and [1] is np.percentile!!!
+min_max_histo = [(110, 99.9),
+                 (100, 99.0),
+                 (200, 99.9),
+                 (200, 98.5),
+                 ]
+
 folder = '_'.join([protein,
                    plate_id,
                    well,
@@ -48,11 +55,12 @@ def get_list_of_files(path, pattern_to_search):
     for file in glob.glob(path):
         if pattern_to_search in file:
             list_of_files.append(file)
+    list_of_files.sort()
     return list_of_files
 
 
 for i in green_list:
-    logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder)*2 + '.log'))
+    logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder) * 2 + '.log'))
     logging.info(i)
     im = io.imread('input/' + i)
     fov = '_'.join(i.split('_')[:3]) + '_'
@@ -79,18 +87,19 @@ for i in green_list:
 
         crop_size = max(diff_x, diff_y)
 
-        for channel in get_list_of_files(i_path, fov):
+        for ch_number, channel in enumerate(get_list_of_files(i_path, fov)):  # todo:
+
             im = io.imread(channel)
             crop = im[(center_x - int(crop_size / 2)):(center_x + int(crop_size / 2)),
-                   (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
+                      (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
 
             plt.imshow(crop)
             plt.waitforbuttonpress(timeout=0.5)
             plt.close()
 
             # Contrast stretching
-            perc = np.percentile(crop, 99.5)
-            contr = exposure.rescale_intensity(crop, in_range=(90, perc))  # or crop.max()?
+            contr = exposure.rescale_intensity(crop, in_range=(min_max_histo[ch_number][0],
+                                           np.percentile(crop, min_max_histo[ch_number][1])))
 
             plt.imshow(contr, cmap='gray')
             plt.waitforbuttonpress(timeout=1)
