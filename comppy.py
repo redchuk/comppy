@@ -7,19 +7,24 @@ import numpy as np
 import logging
 import subprocess
 from datetime import datetime
+import random
+import string
 
-logging.basicConfig(level=logging.INFO)
 i_path = 'input/*'
-# todo: plateid
-well = input('well number(format B08):')
-protein = input('protein(format N_D377Y):')
+
+plate_id = 'plid' + input('plate_id:')
+well = input('well number:')
+protein = input('protein:')
 date = datetime.now().strftime('%Y%m%d')
+git_hash = 'git_' + subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+
 folder = '_'.join([protein,
+                   plate_id,
                    well,
-                   date,
-                   subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()  # git hash
+                   git_hash,
                    ])
-os.mkdir('output/' + folder)
+os.makedirs('output/' + folder, exist_ok=True)
 
 well_list = []
 green_list = []
@@ -28,6 +33,9 @@ for i in glob.glob(i_path):
     filename = str(i).split('\\')[-1]
     if well in filename.split('_')[1]:
         well_list.append(filename)
+
+if not well_list:
+    logging.info('no files for this well')
 
 for i in well_list:
     if '2' in i.split('_')[-1][1]:  # channel
@@ -44,7 +52,8 @@ def get_list_of_files(path, pattern_to_search):
 
 
 for i in green_list:
-    print(i)
+    logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder)*2 + '.log'))
+    logging.info(i)
     im = io.imread('input/' + i)
     fov = '_'.join(i.split('_')[:3]) + '_'
     g_perc = np.percentile(im, 99.95)
@@ -53,11 +62,9 @@ for i in green_list:
     mng.window.state('zoomed')  # to get fullscreen image
     plt.imshow(g_contr)
     x = plt.ginput(2, mouse_add=1, mouse_stop=3)  # 1 for left click, 2 for right
-    print(x)
     plt.close()
 
-    # todo: try instead of if + logging
-    if x:
+    try:
         # having two clicks to set square we need to get min and max for x and y
         min_x = min(int(x[0][1]), int(x[1][1]))
         max_x = max(int(x[0][1]), int(x[1][1]))
@@ -88,4 +95,14 @@ for i in green_list:
             plt.imshow(contr, cmap='gray')
             plt.waitforbuttonpress(timeout=1)
             plt.close()
+
+            filename = '_'.join([protein,
+                                 plate_id,
+                                 well,
+                                 random_str,
+                                 ])
+
+    except Exception:
+        logging.info('no proper input coordinates for cropping')
+
     # to get pseudocolors convert to RGP via appropriate LUT then sum.
