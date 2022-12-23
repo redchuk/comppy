@@ -10,6 +10,11 @@ from datetime import datetime
 import random
 import string
 
+# todo: save originals (separate folder)
+# todo: make composite if right click on crop that was shown
+# todo: scalebar
+# todo: gaussian blur on green channel to denoise? 0.9
+
 i_path = 'input/*'
 
 plate_id = 'plid' + input('plate_id:')
