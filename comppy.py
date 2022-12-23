@@ -20,10 +20,10 @@ git_hash = 'git_' + subprocess.check_output(['git', 'rev-parse', '--short', 'HEA
 random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
 # in tuple, [0] is background, and [1] is np.percentile!!!
-min_max_histo = [(110, 99.9),
-                 (100, 99.0),
-                 (200, 99.9),
-                 (200, 98.5),
+min_max_histo = [(110, 99.9, 'dapi'),
+                 (95, 99.5, '2dab'),
+                 (200, 99.9, 'phal'),
+                 (200, 98.5, 'cona'),
                  ]
 
 folder = '_'.join([protein,
@@ -115,8 +115,12 @@ for i in green_list:
                 filename = '_'.join([protein,
                                      plate_id,
                                      well,
+                                     channel.split('_')[2],  # fov according filename from MD Nano imager
+                                     min_max_histo[ch_number][2],  # channel / dye
                                      random_str,
-                                     ])
+                                     ]) + '.tiff'
+                plt.imsave(('output/'+ (folder+'/') + filename), contr, cmap='gray')
+
             # to get more than 1 crop from an image
             plt.tight_layout()
             plt.show()
@@ -126,4 +130,4 @@ for i in green_list:
         except Exception:
             logging.info('no (more) proper input coordinates for cropping')
 
-    # to get pseudocolors convert to RGP via appropriate LUT then sum.
+    # to get pseudocolors convert to RGB via appropriate LUT then sum.
