@@ -129,7 +129,7 @@ for i in green_list:
                 contr = exposure.rescale_intensity(crop, in_range=(min_max_histo[ch_number][0],
                                                                    np.percentile(crop, min_max_histo[ch_number][1])))
                 channels.append(contr)
-                plt.subplot(1, 4, (ch_number + 1))
+                plt.subplot(1, 5, (ch_number + 1))
                 plt.imshow(contr, cmap='gray')
                 plt.axis('off')
                 # plt.waitforbuttonpress(timeout=0.5)
@@ -143,6 +143,15 @@ for i in green_list:
                                      random_str,
                                      ]) + '.tiff'
                 plt.imsave(('output/' + (folder + '/') + filename), contr, cmap='gray')
+                # todo: output filename to log
+            c_channels = [to_cmyk(channels[0]) * .8,
+                          to_cmyk(channels[1], 'y'),
+                          to_cmyk(channels[2], 'c') / 0.8,
+                          to_cmyk(channels[3], 'm') * .95]
+            norm = (np.sum(c_channels, axis=0) / np.sum(c_channels, axis=0).max()) / 0.55  # first normalized, then br
+            plt.subplot(1, 5, 5)
+            plt.imshow(norm)
+            plt.axis('off')
 
             # to get more than 1 crop from an image
             plt.tight_layout()
@@ -152,12 +161,6 @@ for i in green_list:
 
         except Exception:
             logging.info('no (more) proper input coordinates for cropping')
-    break  # remove before flight!
+    #break  # remove before flight!
 
 # separate channels brightness calibration can be done at this point
-c_channels = [to_cmyk(channels[0]) * .8,
-              to_cmyk(channels[1], 'y'),
-              to_cmyk(channels[2], 'c') / 0.8,
-              to_cmyk(channels[3], 'm') * .95]
-norm = np.sum(c_channels, axis=0) / np.sum(c_channels, axis=0).max()
-plt.imshow(norm / 0.55)
