@@ -66,6 +66,22 @@ def get_list_of_files(path, pattern_to_search):
     return list_of_files
 
 
+def to_cmyk(arr, color='k'):
+    arr = arr.astype('float32') / arr.astype('float32').max()
+    a = arr
+    b = np.zeros(a.shape, dtype='float32')
+    if color == 'c':
+        order = [b, a, a]
+    elif color == 'm':
+        order = [a, b, a]
+    elif color == 'y':
+        order = [a, a, b]
+    else:
+        order = [a, a, a]
+
+    return np.stack(order, axis=2)
+
+
 for i in green_list:
     logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder) * 2 + '.log'))
     logging.info(i)
@@ -138,18 +154,10 @@ for i in green_list:
             logging.info('no (more) proper input coordinates for cropping')
     break  # remove before flight!
 
-
-def to_cmyk(arr, color='k'):
-    arr = arr.astype('float32') / arr.astype('float32').max()
-    a = arr
-    b = np.zeros(a.shape, dtype='float32')
-    if color == 'c':
-        order = [b, a, a]
-    elif color == 'm':
-        order = [a, b, a]
-    elif color == 'y':
-        order = [a, a, b]
-    else:
-        order = [a, a, a]
-
-    return np.stack(order, axis=2)
+# separate channels brightness calibration can be done at this point
+c_channels = [to_cmyk(channels[0]) * .8,
+              to_cmyk(channels[1], 'y'),
+              to_cmyk(channels[2], 'c') / 0.8,
+              to_cmyk(channels[3], 'm') * .95]
+norm = np.sum(c_channels, axis=0) / np.sum(c_channels, axis=0).max()
+plt.imshow(norm / 0.55)
