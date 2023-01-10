@@ -73,7 +73,7 @@ for i in green_list:
     fov = '_'.join(i.split('_')[:3]) + '_'
     g_perc = np.percentile(im, 99.95)
     g_contr = exposure.rescale_intensity(im, in_range=(100, g_perc))
-    x = ['dummy']
+    x = ['dummy']  # to iterate through list, later x = input
 
     while x:
         try:
@@ -99,25 +99,25 @@ for i in green_list:
 
             plt.figure(figsize=(10, 10))
 
+            channels = []
             for ch_number, channel in enumerate(get_list_of_files(i_path, fov)):
-
                 im = io.imread(channel)
                 crop = im[(center_x - int(crop_size / 2)):(center_x + int(crop_size / 2)),
-                          (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
+                       (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
 
-                #plt.imshow(crop)
-                #plt.waitforbuttonpress(timeout=0.5)
-                #plt.close()
+                # plt.imshow(crop)
+                # plt.waitforbuttonpress(timeout=0.5)
+                # plt.close()
 
                 # Contrast stretching
                 contr = exposure.rescale_intensity(crop, in_range=(min_max_histo[ch_number][0],
-                                               np.percentile(crop, min_max_histo[ch_number][1])))
-
-                plt.subplot(1, 4, (ch_number+1))
+                                                                   np.percentile(crop, min_max_histo[ch_number][1])))
+                channels.append(contr)
+                plt.subplot(1, 4, (ch_number + 1))
                 plt.imshow(contr, cmap='gray')
                 plt.axis('off')
-                #plt.waitforbuttonpress(timeout=0.5)
-                #plt.close()
+                # plt.waitforbuttonpress(timeout=0.5)
+                # plt.close()
 
                 filename = '_'.join([protein,
                                      plate_id,
@@ -126,7 +126,7 @@ for i in green_list:
                                      min_max_histo[ch_number][2],  # channel / dye
                                      random_str,
                                      ]) + '.tiff'
-                plt.imsave(('output/'+ (folder+'/') + filename), contr, cmap='gray')
+                plt.imsave(('output/' + (folder + '/') + filename), contr, cmap='gray')
 
             # to get more than 1 crop from an image
             plt.tight_layout()
@@ -136,5 +136,20 @@ for i in green_list:
 
         except Exception:
             logging.info('no (more) proper input coordinates for cropping')
+    break  # remove before flight!
 
 
+def to_cmyk(arr, color='k'):
+    arr = arr.astype('float32') / arr.astype('float32').max()
+    a = arr
+    b = np.zeros(a.shape, dtype='float32')
+    if color == 'c':
+        order = [b, a, a]
+    elif color == 'm':
+        order = [a, b, a]
+    elif color == 'y':
+        order = [a, a, b]
+    else:
+        order = [a, a, a]
+
+    return np.stack(order, axis=2)
