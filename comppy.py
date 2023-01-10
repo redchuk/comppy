@@ -12,8 +12,10 @@ import string
 
 # todo: save originals (separate folder)
 # todo: make composite if right click on crop that was shown
-# todo: scalebar
+# todo: scalebar (thickness and xy according to crop size)
 # todo: gaussian blur on green channel to denoise? 0.9
+# to get pseudocolors convert to RGB via appropriate LUT then sum.
+
 
 i_path = 'input/*'
 
@@ -135,4 +137,4 @@ for i in green_list:
         except Exception:
             logging.info('no (more) proper input coordinates for cropping')
 
-    # to get pseudocolors convert to RGB via appropriate LUT then sum.
+
