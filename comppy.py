@@ -82,6 +82,17 @@ def to_cmyk(arr, color='k'):
     return np.stack(order, axis=2)
 
 
+def scalebar(image):
+    height = image.shape[0]
+    width = image.shape[0]
+    region_height = int(height * 0.02)
+    region_width = 30
+    start_x = int(height * 0.95) - region_height
+    start_y = int(width * 0.95) - region_width
+    region = image[start_x:start_x + region_height, start_y:start_y + region_width, :]
+    region[:, :] = 1
+
+
 for i in green_list:
     logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder) * 2 + '.log'))
     logging.info(i)
@@ -149,6 +160,8 @@ for i in green_list:
                           to_cmyk(channels[2], 'c') / 0.8,
                           to_cmyk(channels[3], 'm') * .95]
             norm = (np.sum(c_channels, axis=0) / np.sum(c_channels, axis=0).max()) / 0.55  # first normalized, then br
+            scalebar(norm)
+
             plt.subplot(1, 5, 5)
             plt.imshow(norm)
             plt.axis('off')
@@ -162,5 +175,3 @@ for i in green_list:
         except Exception:
             logging.info('no (more) proper input coordinates for cropping')
     #break  # remove before flight!
-
-# separate channels brightness calibration can be done at this point
