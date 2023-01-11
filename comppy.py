@@ -83,6 +83,7 @@ def to_cmyk(arr, color='k'):
 
 
 def scalebar(image):
+    # Scale bar, 10 microns (10/0.335=30pxs)
     height = image.shape[0]
     width = image.shape[0]
     region_height = int(height * 0.02)
@@ -154,7 +155,7 @@ for i in green_list:
                                      random_str,
                                      ]) + '.tiff'
                 plt.imsave(('output/' + (folder + '/') + filename), contr, cmap='gray')
-                # todo: output filename to log
+                logging.info('written to file' + ('output/' + (folder + '/') + filename))
             c_channels = [to_cmyk(channels[0]) * .8,
                           to_cmyk(channels[1], 'y'),
                           to_cmyk(channels[2], 'c') / 0.8,
