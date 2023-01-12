@@ -180,6 +180,8 @@ for i in green_list:
                                        ]) + '.tiff'
             plt.savefig(('output/' + (folder + '/') + composite_name), bbox_inches='tight')
             logging.info('written to file ' + ('output/' + (folder + '/') + composite_name))
+            mng = plt.get_current_fig_manager()  # to get fullscreen image
+            mng.window.state('zoomed')  # to get fullscreen image
             plt.show()
             plt.waitforbuttonpress(timeout=10)
             plt.close()
