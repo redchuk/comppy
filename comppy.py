@@ -10,51 +10,15 @@ from datetime import datetime
 import random
 import string
 
+
 # todo: save originals (separate folder)
 # todo: make composite if right click on crop that was shown
 # todo: scalebar (thickness and xy according to crop size)
 # todo: gaussian blur on green channel to denoise? 0.9
 # to get pseudocolors convert to RGB via appropriate LUT then sum.
 
-
-i_path = 'input/*'
-
-plate_id = 'plid' + input('plate_id:')
-well = input('well number:')
-protein = input('protein:')
-date = datetime.now().strftime('%Y%m%d')
-git_hash = 'git_' + subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-
-# in tuple, [0] is background, and [1] is np.percentile!!!
-min_max_histo = [(110, 99.9, 'dapi'),
-                 (95, 99.5, '2dab'),
-                 (200, 99.9, 'phal'),
-                 (200, 98.5, 'cona'),
-                 ]
-
-folder = '_'.join([protein,
-                   plate_id,
-                   well,
-                   git_hash,
-                   ])
-os.makedirs('output/' + folder, exist_ok=True)
-
-well_list = []
-green_list = []
-
-for i in glob.glob(i_path):
-    filename = str(i).split('\\')[-1]
-    if well in filename.split('_')[1]:
-        well_list.append(filename)
-
-if not well_list:
-    logging.info('no files for this well')
-
-for i in well_list:
-    if '2' in i.split('_')[-1][1]:  # channel
-        # print(i)
-        green_list.append(i)
+def random_str():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
 
 def get_list_of_files(path, pattern_to_search):
@@ -94,6 +58,44 @@ def scalebar(image):
     region[:, :] = 1
 
 
+i_path = 'input/*'
+
+plate_id = 'plid' + input('plate_id:')
+well = input('well number:')
+protein = input('protein:')
+date = datetime.now().strftime('%Y%m%d')
+git_hash = 'git_' + subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+
+# in tuple, [0] is background, and [1] is np.percentile!!!
+min_max_histo = [(110, 99.9, 'dapi'),
+                 (95, 99.5, '2dab'),
+                 (200, 99.9, 'phal'),
+                 (200, 98.5, 'cona'),
+                 ]
+
+folder = '_'.join([protein,
+                   plate_id,
+                   well,
+                   git_hash,
+                   ])
+os.makedirs('output/' + folder, exist_ok=True)
+
+well_list = []
+green_list = []
+
+for i in glob.glob(i_path):
+    filename = str(i).split('\\')[-1]
+    if well in filename.split('_')[1]:
+        well_list.append(filename)
+
+if not well_list:
+    logging.info('no files for this well')
+
+for i in well_list:
+    if '2' in i.split('_')[-1][1]:  # channel
+        # print(i)
+        green_list.append(i)
+
 for i in green_list:
     logging.basicConfig(level=logging.INFO, filename=('output' + ('/' + folder) * 2 + '.log'))
     logging.info(i)
@@ -125,9 +127,10 @@ for i in green_list:
 
             crop_size = max(diff_x, diff_y)
 
-            plt.figure(figsize=(10, 10))
+            plt.figure(figsize=(12.5, 12.5), dpi=300)
 
             channels = []
+            rand_str = random_str()  # every crop has its own unique identifier (all channels have the same)
             for ch_number, channel in enumerate(get_list_of_files(i_path, fov)):
                 im = io.imread(channel)
                 crop = im[(center_x - int(crop_size / 2)):(center_x + int(crop_size / 2)),
@@ -152,10 +155,10 @@ for i in green_list:
                                      well,
                                      channel.split('_')[2],  # fov according filename from MD Nano imager
                                      min_max_histo[ch_number][2],  # channel / dye
-                                     random_str,
+                                     rand_str,
                                      ]) + '.tiff'
                 plt.imsave(('output/' + (folder + '/') + filename), contr, cmap='gray')
-                logging.info('written to file' + ('output/' + (folder + '/') + filename))
+                logging.info('written to file ' + ('output/' + (folder + '/') + filename))
             c_channels = [to_cmyk(channels[0]) * .8,
                           to_cmyk(channels[1], 'y'),
                           to_cmyk(channels[2], 'c') / 0.8,
@@ -168,7 +171,15 @@ for i in green_list:
             plt.axis('off')
 
             # to get more than 1 crop from an image
-            plt.tight_layout()
+            plt.tight_layout(pad=0.5)
+            composite_name = '_'.join([protein,
+                                       plate_id,
+                                       well,
+                                       'cmyk',
+                                       rand_str,
+                                       ]) + '.tiff'
+            plt.savefig(('output/' + (folder + '/') + composite_name), bbox_inches='tight')
+            logging.info('written to file ' + ('output/' + (folder + '/') + composite_name))
             plt.show()
             plt.waitforbuttonpress(timeout=10)
             plt.close()
