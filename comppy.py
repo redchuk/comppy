@@ -110,7 +110,7 @@ for i in green_list:
             mng = plt.get_current_fig_manager()  # to get fullscreen image
             mng.window.state('zoomed')  # to get fullscreen image
             plt.imshow(g_contr)
-            x = plt.ginput(2, mouse_add=1, mouse_stop=3)  # 1 for left click, 3 for right
+            x = plt.ginput(2, mouse_add=1, mouse_stop=3, timeout=60)  # 1 for left click, 3 for right
             plt.close()
 
             # having two clicks to set square we need to get min and max for x and y
