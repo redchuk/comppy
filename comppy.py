@@ -136,19 +136,13 @@ for i in green_list:
                 crop = im[(center_x - int(crop_size / 2)):(center_x + int(crop_size / 2)),
                        (center_y - int(crop_size / 2)):(center_y + int(crop_size / 2))]
 
-                # plt.imshow(crop)
-                # plt.waitforbuttonpress(timeout=0.5)
-                # plt.close()
-
                 # Contrast stretching
                 contr = exposure.rescale_intensity(crop, in_range=(min_max_histo[ch_number][0],
                                                                    np.percentile(crop, min_max_histo[ch_number][1])))
                 channels.append(contr)
                 plt.subplot(1, 5, (ch_number + 1))
-                plt.imshow(contr, cmap='gray')
+                plt.imshow(contr, cmap='gray', interpolation='bicubic')
                 plt.axis('off')
-                # plt.waitforbuttonpress(timeout=0.5)
-                # plt.close()
 
                 filename = '_'.join([protein,
                                      plate_id,
@@ -159,6 +153,7 @@ for i in green_list:
                                      ]) + '.tiff'
                 plt.imsave(('output/' + (folder + '/') + filename), contr, cmap='gray')
                 logging.info('written to file ' + ('output/' + (folder + '/') + filename))
+
             c_channels = [to_cmyk(channels[0]) * .8,
                           to_cmyk(channels[1], 'y'),
                           to_cmyk(channels[2], 'c') / 0.8,
@@ -167,7 +162,7 @@ for i in green_list:
             scalebar(norm)
 
             plt.subplot(1, 5, 5)
-            plt.imshow(norm)
+            plt.imshow(norm, interpolation='bicubic')
             plt.axis('off')
 
             # to get more than 1 crop from an image
